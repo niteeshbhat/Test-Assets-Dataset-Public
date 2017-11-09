@@ -2,15 +2,15 @@
 
 ## General Infrastructure Architecture
 
-![](https://github.com/waqarz/VR-IF-Database/blob/master/doc/diagrams/vr-if-test-assets-dataset-architecture.png)
+![](https://github.com/VR-IF/Test-Assets-Dataset-Public/blob/master/doc/diagrams/vr-if-test-assets-dataset-architecture.png)
 
 ## Test-Assets-Dataset REST API Structure and Data Flow
 
-![](https://github.com/waqarz/VR-IF-Database/blob/master/doc/diagrams/vr-if-test-assets-dataset-rest-api-architecture.png)
+![](https://github.com/VR-IF/Test-Assets-Dataset-Public/blob/master/doc/diagrams/vr-if-test-assets-dataset-rest-api-architecture.png)
 
 ## Components
 
-**VR-IF Test-Asset-UI** - Is User interface or REST API client. Provides ability to view Test Assets as well as gain authorized access to maintain test assets for it's members as well as maintaining users database for Administrators. Source: [https://github.com/waqarz/VR-IF-FE](https://github.com/waqarz/VR-IF-FE). It connects directly to REST API end point. Behind that is ExpressJS router component. 
+**VR-IF Test-Asset-UI** - Is User interface or REST API client. Provides ability to view Test Assets as well as gain authorized access to maintain test assets for it's members as well as maintaining users database for Administrators. Source: [https://github.com/VR-IF/Test-Assets-UI-public](https://github.com/VR-IF/Test-Assets-UI-public). It connects directly to REST API end point. Behind that is ExpressJS router component. 
 
 **Router** - REST API Routing is based on [Express](http://expressjs.com/). Express is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications. Routing refers to determining how an application responds to a client request to a particular endpoint, which is a URI (or path) and a specific HTTP request method (GET, POST, and so on).
 
@@ -39,7 +39,7 @@ The JWT authentication middleware authenticates callers using a JWT. If the toke
 
 **Routes** - protected by ACL or public routes are actual business logic implementation and implements data retrieval / update or deletion. It connects directly to MongoDB Database and use Utils middleware to verify users policy before an actual action will be performed.
 
-**Data models** - A data model is an abstract model that organizes elements of data and standardizes how they relate to one another and to properties test assets. Ours data models explicitly determines the structure of data which is described in `swagger.json` see section [definitions](https://github.com/waqarz/VR-IF-Database/blob/master/swagger.json).
+**Data models** - A data model is an abstract model that organizes elements of data and standardizes how they relate to one another and to properties test assets. Ours data models explicitly determines the structure of data which is described in `swagger.json` see section [definitions](https://github.com/VR-IF/Test-Assets-Dataset-Public/blob/master/swagger.json).
 
 **MongoDB Database** - Stand alone MongoDB server. Currently single instance with regular backups. We use [Mongoose](http://mongoosejs.com/) which provides a straight-forward, schema-based solution to model our application data. It includes built-in type casting, validation, query building, business logic hooks and more, out of the box.
 
@@ -99,7 +99,7 @@ JWT example:
 
 It connects directly to MongoDB Database and use Utils middleware to verify users policy before an actual action will be performed.
 
-Located at [Test-Assets-Dataset/routes](https://github.com/waqarz/VR-IF-Database/tree/master/routes)
+Located at [Test-Assets-Dataset-Public/routes](https://github.com/VR-IF/Test-Assets-Dataset-Public/tree/master/routes)
 
 | Method | Route | Description | Access |
 |--------|-------|-------------|--------|
@@ -123,4 +123,4 @@ Located at [Test-Assets-Dataset/routes](https://github.com/waqarz/VR-IF-Database
 
 ## Database
 
-Data model is outlined in [swagger.json](https://github.com/waqarz/VR-IF-Database/blob/master/swagger.json#L533).
+Data model is outlined in [swagger.json](https://github.com/VR-IF/Test-Assets-Dataset-Public/blob/master/swagger.json#L533).

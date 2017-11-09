@@ -3,15 +3,15 @@
 
 Welcome to the VR-IF-Dataset!
 
-* [Architecture overview] (https://github.com/waqarz/VR-IF-Database/blob/master/doc/architecture.md)
-* [Installation Guide](https://github.com/waqarz/VR-IF-Database/blob/master/doc/installation.md)
+* [Architecture overview] (https://github.com/VR-IF/Test-Assets-Dataset-Public/blob/master/doc/architecture.md)
+* [Installation Guide](https://github.com/VR-IF/Test-Assets-Dataset-Public/blob/master/doc/installation.md)
 
 ### Introduction
 
 VR-IF Test assets include
 
--Testcontent: the source VR contents
--Testvectors generated from Testcontents.
+- Testcontent: the source VR contents.
+- Testvectors generated from Testcontents.
 
 
 VR-IF test assets use database + front-end based approach suitable for extensibility.
