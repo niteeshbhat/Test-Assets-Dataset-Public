@@ -5,8 +5,8 @@
 var utils = require('./utils');
 
 var role = 'superuser';
-var username = 'user';
-var password = 'user';
+var username = 'vrif-admin';
+var password = 'm2!b-zbrC6-uX!#*';
 
 
 utils.conntectToDatabase()
