@@ -1,15 +1,11 @@
 {
   "webConfig": {
-    "port": 3000
+    "port": 8080
   },
   "dbConfig": {
     "host": "127.0.0.1",
     "port": 27017,
-    "dbName": "vrif-db-new",
+    "dbName": "vrif-db",
     "aclPrefix": "acl_"
-  },
-  "constraints": {
-    "limit": 50,
-    "offset": 0
   }
 }

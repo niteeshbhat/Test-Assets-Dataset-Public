@@ -9,14 +9,16 @@ var utils = require('./utils');
 var User = utils.models.User;
 var Q = require('q');
 
-var username = 'dashif-admin';
+var role = 'super-admin';
+var username = 'vrif-admin';
+var password = 'superuser';
 var superUser = null;
 var featureGroups = [];
 var features = [];
-var testcases = [];
+var testcontents = [];
 var testvectors = [];
 var oldFeatures = [];
-var oldTestcases = [];
+var oldTestcontents = [];
 var oldTestvectors = [];
 
 var dataimporter = {};
@@ -41,18 +43,10 @@ dataimporter.startImport = function () {
       })
       .then(function () {
           console.log("Imported Tables");
-          return dataimporter.importFeatureGroups();
+          return dataimporter.importTestcontents();
       })
       .then(function () {
-          console.log("Imported Feature Groups");
-          return dataimporter.importFeatures();
-      })
-      .then(function () {
-          console.log("Imported Features");
-          return dataimporter.importTestcases();
-      })
-      .then(function () {
-          console.log("Imported Testcases");
+          console.log("Imported Testcontents");
           return dataimporter.importTestvectors();
       })
       .then(function () {
@@ -70,47 +64,45 @@ dataimporter.importTables = function () {
     var fid;
     var tcid;
 
-    fs.readFile('./data/feature.json', function (err, data) {
-        if (err) {
-            q.reject();
-        }
-        oldFeatures = JSON.parse(data);
-        fs.readFile('./data/testcase.json', function (err, data) {
+
+        fs.readFile('./data/testcontent.json', function (err, data) {
             if (err) {
                 q.reject();
             }
-            oldTestcases = JSON.parse(data);
+            oldTestcontents = JSON.parse(data);
             // fill the features field with name instead of ids
-            oldTestcases.forEach(function (item) {
+           /* oldTestcontents.forEach(function (item) {
                 fid = item.features['$oid'];
                 oldFeatures.forEach(function (f) {
                     if (f._id['$oid'] === fid) {
                         item.feature = f;
                     }
                 })
-            })
+            })*/
             fs.readFile('./data/testvector.json', function (err, data) {
                 if (err) {
                     q.reject();
                 }
                 oldTestvectors = JSON.parse(data);
+                    
+
                 // fill the features field with name instead of ids
                 oldTestvectors.forEach(function (item) {
-                    item.savedTestcases = [];
-                    if (item.testcases instanceof Array) {
-                        item.testcases.forEach(function (tc) {
+                    item.savedTestcontents = [];
+                    if (item.testcontents instanceof Array) {
+                        item.testcontents.forEach(function (tc) {
                             tcid = tc['$oid'];
-                            oldTestcases.forEach(function (t) {
+                            oldTestcontents.forEach(function (t) {
                                 if (t._id['$oid'] === tcid) {
-                                    item.savedTestcases.push(t);
+                                    item.savedTestcontents.push(t);
                                 }
                             })
                         })
                     } else {
-                        tcid = item.testcases; //somehow the data structure is broken at the end
-                        oldTestcases.forEach(function (t) {
+                        tcid = item.testcontents; //somehow the data structure is broken at the end
+                        oldTestcontents.forEach(function (t) {
                             if (t._id['$oid'] === tcid) {
-                                item.savedTestcases.push(t);
+                                item.savedTestcontents.push(t);
                             }
                         })
                     }
@@ -119,65 +111,22 @@ dataimporter.importTables = function () {
             });
         });
 
-    });
+
 
     return q.promise;
 };
 
-dataimporter.importFeatureGroups = function () {
-    var q = Q.defer();
-    var groups = [];
-    var featureGroupNames = {};
-    var now = new Date();
 
-    oldFeatures.forEach(function (item) {
-        if (!featureGroupNames[item.group]) {
-            featureGroupNames[item.group] = item.group;
-            groups.push({
-                name: item.group,
-                active: true,
-                createdby: superUser._id,
-                createdAt : now,
-                updatedAt : now,
-                attributeInstances: []
-            })
-        }
-    });
-    dataimporter.createFeatureGroupEntries(groups)
-      .then(function (data) {
-          featureGroups = data;
-          q.resolve();
-      })
-      .catch(function (err) {
-          q.reject(err);
-      })
-};
 
-dataimporter.importFeatures = function () {
-    var q = Q.defer();
-    var ignoredAttributes = {'_id': true, 'group': true, 'name': true, 'createdby': true};
 
-    dataimporter.createAttributesForModel(oldFeatures, ignoredAttributes, 'Feature')
-      .then(function (attributes) {
-          return dataimporter.createFeatureInstances(attributes)
-      })
-      .then(function () {
-          q.resolve();
-      })
-      .catch(function (err) {
-          q.reject(err);
-      });
 
-    return q.promise;
-};
-
-dataimporter.importTestcases = function () {
+dataimporter.importTestcontents = function () {
     var q = Q.defer();
     var ignoredAttributes = {'_id': true, 'feature': true, 'features': true, 'name': true, 'createdby': true};
-
-    dataimporter.createAttributesForModel(oldTestcases, ignoredAttributes, 'Testcase')
+     
+    dataimporter.createAttributesForModel(oldTestcontents, ignoredAttributes, 'Testcontent')
       .then(function (attributes) {
-          return dataimporter.createTestcaseInstances(attributes)
+          return dataimporter.createTestcontentInstances(attributes)
       })
       .then(function () {
           q.resolve();
@@ -194,8 +143,8 @@ dataimporter.importTestvectors = function () {
     var ignoredAttributes = {
         '_id': true,
         'url': true,
-        'testcases': true,
-        'savedTestcases': true,
+        'testcontents': true,
+        'savedTestcontents': true,
         'name': true,
         'createdby': true,
         '__v': true
@@ -215,80 +164,30 @@ dataimporter.importTestvectors = function () {
     return q.promise;
 };
 
-dataimporter.createFeatureInstances = function (attributes) {
+
+
+dataimporter.createTestcontentInstances = function (attributes) {
     var q = Q.defer();
-    var feature;
+    var testcontent;
     var promises = [];
     var now = new Date();
     var i = 0;
 
-    oldFeatures.forEach(function (item) {
+    oldTestcontents.forEach(function (item) {
+   
         i = 0;
-        feature = {};
-        feature.name = item.name;
-        feature.createdby = superUser._id;
-        feature.active = true;
-        feature.createdAt = now;
-        feature.updatedAt = now;
-        feature.attributeInstances = [];
+        testcontent = {};
+        testcontent.name = item.name;
+        testcontent.createdby = superUser._id;
+        testcontent.active = true;
+        testcontent.createdAt = now;
+        testcontent.updatedAt = now;
+        testcontent.oldId = item._id['$oid']; // This is ugly but the fastest way to not lose the references when we create the testvectors. We have to delete that attribute in the end
+        testcontent.attributeInstances = [];
         attributes.forEach(function (attr) {
-            if (attr.type === 'Feature') {
+            if (attr.type === 'Testcontent') {
                 //create an attribute instance for each attribute
-                feature.attributeInstances.push({
-                    value: item[attr.description],
-                    attribute: attr._id
-                })
-            }
-        })
-        // Insert with the right feature group
-        if (item.group) {
-            while (i < featureGroups.length) {
-                if (item.group === featureGroups[i].name) {
-                    feature.featureGroup = featureGroups[i]._id;
-                    break;
-                }
-                i++;
-            }
-        }
-        promises.push(dataimporter.createSingleInstance(feature));
-    });
-    Q.all(promises)
-      .then(function (instances) {
-          return dataimporter.createFeatureEntries(instances)
-      })
-      .then(function (data) {
-          features = data;
-          q.resolve();
-      })
-      .catch(function (err) {
-          q.reject(err);
-      });
-
-
-    return q.promise;
-};
-
-dataimporter.createTestcaseInstances = function (attributes) {
-    var q = Q.defer();
-    var testcase;
-    var promises = [];
-    var now = new Date();
-    var i = 0;
-
-    oldTestcases.forEach(function (item) {
-        i = 0;
-        testcase = {};
-        testcase.name = item.name;
-        testcase.createdby = superUser._id;
-        testcase.active = true;
-        testcase.createdAt = now;
-        testcase.updatedAt = now;
-        testcase.oldId = item._id['$oid']; // This is ugly but the fastest way to not lose the references when we create the testvectors. We have to delete that attribute in the end
-        testcase.attributeInstances = [];
-        attributes.forEach(function (attr) {
-            if (attr.type === 'Testcase') {
-                //create an attribute instance for each attribute
-                testcase.attributeInstances.push({
+                testcontent.attributeInstances.push({
                     value: item[attr.description],
                     attribute: attr._id
                 })
@@ -298,20 +197,20 @@ dataimporter.createTestcaseInstances = function (attributes) {
         if (item.feature) {
             while (i < features.length) {
                 if (item.feature.name === features[i].name) {
-                    testcase.feature = [features[i]._id];
+                    testcontent.feature = [features[i]._id];
                     break;
                 }
                 i++;
             }
         }
-        promises.push(dataimporter.createSingleInstance(testcase));
+        promises.push(dataimporter.createSingleInstance(testcontent));
     });
     Q.all(promises)
       .then(function (instances) {
-          return dataimporter.createTestCaseEntries(instances)
+          return dataimporter.createTestContentEntries(instances)
       })
       .then(function (data) {
-          testcases = data;
+          testcontents = data;
           q.resolve();
       })
       .catch(function (err) {
@@ -330,6 +229,7 @@ dataimporter.createTestvectorInstances = function (attributes) {
     var i = 0;
 
     oldTestvectors.forEach(function (item) {
+        //console.log(item)
         i = 0;
         testvector = {};
         testvector.name = item.name;
@@ -339,7 +239,7 @@ dataimporter.createTestvectorInstances = function (attributes) {
         testvector.attributeInstances = [];
         testvector.createdAt = now;
         testvector.updatedAt = now;
-        testvector.testcases = [];
+        testvector.testcontents = [];
         attributes.forEach(function (attr) {
             if (attr.type === 'Testvector') {
                 //create an attribute instance for each attribute
@@ -349,11 +249,12 @@ dataimporter.createTestvectorInstances = function (attributes) {
                 })
             }
         })
-        // Insert with the right testcases
-        item.savedTestcases.forEach(function (tc) {
-            while (i < testcases.length) {
-                if (tc._id['$oid'] === testcases[i].oldId) {
-                    testvector.testcases.push(testcases[i]._id);
+        
+        // Insert with the right testcontents
+        item.savedTestcontents.forEach(function (tc) {
+            while (i < testcontents.length) {
+                if (tc._id['$oid'] === testcontents[i].oldId) {
+                    testvector.testcontents.push(testcontents[i]._id);
                     break;
                 }
                 i++;
@@ -449,14 +350,7 @@ dataimporter.createAttributeEntries = function (attributes) {
     return q.promise;
 };
 
-dataimporter.createFeatureGroupEntries = function (featureGroups) {
-    var q = Q.defer();
 
-    utils.models.FeatureGroup.collection.insert(featureGroups, {}, function (err, docs) {
-        err ? q.reject(err) : q.resolve(docs.ops);
-    });
-    return q.promise;
-};
 
 dataimporter.createAttributeInstanceEntries = function (attributeInstances) {
     var q = Q.defer();
@@ -467,10 +361,10 @@ dataimporter.createAttributeInstanceEntries = function (attributeInstances) {
     return q.promise;
 };
 
-dataimporter.createTestCaseEntries = function (testcases) {
+dataimporter.createTestContentEntries = function (testcontents) {
     var q = Q.defer();
 
-    utils.models.Testcase.collection.insert(testcases, {}, function (err, docs) {
+    utils.models.Testcontent.collection.insert(testcontents, {}, function (err, docs) {
         err ? q.reject(err) : q.resolve(docs.ops);
     });
     return q.promise;
@@ -485,17 +379,10 @@ dataimporter.createTestVectorEntries = function (testvectors) {
     return q.promise;
 };
 
-dataimporter.createFeatureEntries = function (features) {
-    var q = Q.defer();
 
-    utils.models.Feature.collection.insert(features, {}, function (err, docs) {
-        err ? q.reject(err) : q.resolve(docs.ops);
-    });
-    return q.promise;
-};
 
 dataimporter.removeOldIdField = function () {
-    utils.models.Testcase.collection.update({}, {$unset: {oldId: 1}}, {multi: true});
+    utils.models.Testcontent.collection.update({}, {$unset: {oldId: 1}}, {multi: true});
 };
 
 dataimporter.startImport();

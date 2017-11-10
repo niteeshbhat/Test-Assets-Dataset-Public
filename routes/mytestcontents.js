@@ -3,13 +3,13 @@ var router = express.Router();
 var mongoose = require('mongoose');
 var utils = require('./utils');
 var _ = require('lodash');
-var Testvector = global.models.Testvector;
+var Testcontent = global.models.Testcontent;
 var User = global.models.User;
 var ObjectId = mongoose.Types.ObjectId;
 var BadRequestError = require('../errors/BadRequestError');
 
 /**
- * GET a list of testvectors which belongs to the owner. User ID is fetched from JWT token
+ * GET a list of testcontents which belongs to the owner. User ID is fetched from JWT token
  */
 router.get('/', function (req, res, next) {
     var id = req.user._id;
@@ -20,7 +20,6 @@ router.get('/', function (req, res, next) {
     if (_.isEmpty(id)) {
         return next(new BadRequestError('empty_data', 'User ID cannot be empty.'));
     }
-
     requestOptions = { createdby: ObjectId(id) };
     User.findOne({ _id: id }, 'username')
       .then(function (result) {
@@ -35,25 +34,25 @@ router.get('/', function (req, res, next) {
                   requestOptions = {};
               }
           }
-          return Testvector.find(requestOptions).deepPopulate('testcontents attributeInstances attributeInstances.attribute')
+          return Testcontent.find(requestOptions).deepPopulate('attributeInstances attributeInstances.attribute')
       })
       .then(function (docs) {
           return res.status(200).json(docs);
       })
       .catch(function (err) {
           next(err);
-      })
+      });
 });
 
 /**
- *  Adds a testvector object to Feature collection.
+ *  Adds a Testcontent object
  *  Expects the payload of the attribute instances to be in the form [{attribute._id,value},{attribute._id,value}]
  */
-router.post('/', utils.checkPermissions("testvectors", "create"), function (req, res, next) {
-    var testvector;
+router.post('/', utils.checkPermissions("testcontents", "create"), function (req, res, next) {
+    var testcontent;
     var data = {};
     var attributeInstanceIds = [];
-console.log("i should be here")
+
     if (_.isEmpty(req.body)) {
         return next(new BadRequestError('empty_data', 'Post data cannot be empty.'));
     }
@@ -70,14 +69,14 @@ console.log("i should be here")
                   attributeInstanceIds.push(item._id.toString());
               });
               data.attributeInstances = attributeInstanceIds;
-              testvector = new Testvector(data);
-              testvector.save(function (err) {
+              testcontent = new Testcontent(data);
+              testcontent.save(function (err) {
                   if (err) next(err);
 
                   // update dshja.json
                   utils.writeFeatureTestVectorJSON();
 
-                  return res.status(200).json(testvector);
+                  return res.status(200).json(testcontent);
               });
           })
     }

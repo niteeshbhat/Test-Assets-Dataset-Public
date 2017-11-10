@@ -1,17 +1,15 @@
-//testvectors.js
-
 var express = require('express');
 var router = express.Router();
 var mongoose = require('mongoose');
 var utils = require('./utils');
 var _ = require('lodash');
-var Testvector = global.models.Testvector;
 var Testcontent = global.models.Testcontent;
+var Testvector = global.models.Testvector;
+var ObjectID = mongoose.Types.ObjectId;
 var BadRequestError = require('../errors/BadRequestError');
 var InternalError = require('../errors/InternalError');
 
-
-global.models.Testvector.schema.pre('save', function (next) {
+global.models.Testcontent.schema.pre('save', function (next) {
     var now = new Date();
     if (!this.createdAt) {
         this.createdAt = now;
@@ -21,62 +19,22 @@ global.models.Testvector.schema.pre('save', function (next) {
 
 /**
  * Public method
- * GET all testvectors with all attributes, public method
+ * GET all testcontents with all attributes, public method
  */
 router.get('/', function (req, res, next) {
-    var result = {data: []};
-    var items;
-    try {
-        Testvector.find().deepPopulate('testcontents attributeInstances attributeInstances.attribute')
-          .then(function (docs) {
-              docs.forEach(function (item) {
-                  console.log("i cam to print item")
-                  items = utils.processTestvector(item);
-                  items.forEach(function (doc) {
-                      result.data.push(doc);
-                  })
-              });
-              
-              return res.status(200).json(result);
-          })
-          .catch(function (err) {
-              next(err);
-          })
-    }
-    catch (err) {
-        next(err);
-    }
-});
-
-router.get('/groupedlist', function (req, res, next) {
-    var result = {data: []};
-    var current = {};
-
-    try {
-        Testvector.find()
-          .deepPopulate('testcontents attributeInstances attributeInstances.attribute')
-          .then(function (docs) {
-              docs.forEach(function (item) {
-                  current = utils.processGroupedTestvector(item);
-                  if (current) {
-                      result.data.push(current);
-                  }
-                  current = {};
-              });
-              return res.status(200).json(result);
-          })
-          .catch(function (err) {
-              next(err)
-          })
-    }
-    catch (err) {
-        next(err)
-    }
+    console.log("i am in testcontent")
+    Testcontent.find().deepPopulate('attributeInstances attributeInstances.attribute')
+      .then(function (docs) {
+          return res.status(200).json(docs);
+      })
+      .catch(function (err) {
+          next(err);
+      })
 });
 
 /**
  * Public method
- * GET details of a feature by id.
+ * GET details of a testcontent by id.
  * @param {string} id
  */
 router.get('/:id/details', function (req, res, next) {
@@ -87,9 +45,13 @@ router.get('/:id/details', function (req, res, next) {
         return next(new BadRequestError('empty_data', 'Feature Group ID cannot be empty.'));
     }
 
-    Testvector.findById(id).deepPopulate('attributeInstances attributeInstances.attribute testcontents')
+    Testcontent.findById(id).deepPopulate('attributeInstances attributeInstances.attribute')
       .then(function (docs) {
-          response.testvector = docs;
+          response.testcontent = docs;
+          return Testvector.find({testcontents: {$in: [id]}}).deepPopulate('testcontents');
+      })
+      .then(function (docs) {
+          response.testvectors = docs;
           return res.status(200).json(response);
       })
       .catch(function (err) {
@@ -99,17 +61,17 @@ router.get('/:id/details', function (req, res, next) {
 
 /**
  * Restricted call
- * GET a testvector by id.
+ * GET a testcontent by id.
  * @param {string} id
  */
-router.get('/:id', utils.checkPermissions("testvectors", "read"), function (req, res, next) {
+router.get('/:id', utils.checkPermissions("testcontents", "read"), function (req, res, next) {
     var id = req.params.id;
 
     if (_.isEmpty(id)) {
-        return next(new BadRequestError('empty_data', 'Testvector ID cannot be empty.'));
+        return next(new BadRequestError('empty_data', 'Testcontent ID cannot be empty.'));
     }
 
-    Testvector.findById(id).deepPopulate('testcontents attributeInstances testcontents.attributeInstances attributeInstances.attribute testcontents.attributeInstances.attribute')
+    Testcontent.findById(id).deepPopulate('attributeInstances attributeInstances.attribute')
       .then(function (docs) {
           return res.status(200).json(docs);
       })
@@ -118,14 +80,36 @@ router.get('/:id', utils.checkPermissions("testvectors", "read"), function (req,
       })
 });
 
+/**
+ * @param {string} id - ID of the testcontent
+ * GET all the testvectors which have the desired testcontent id
+ */
+router.get('/:id/testvectors', function (req, res, next) {
+    var id = req.params.id;
 
+    if (_.isEmpty(id)) {
+        return next(new BadRequestError('empty_data', 'Feature ID cannot be empty.'));
+    }
+    try {
+        Testvector.find({testcontents: {$in: [id]}}).deepPopulate('attributeInstances attributeInstances.attribute')
+          .then(function (docs) {
+              return res.status(200).json(docs);
+          })
+          .catch(function (err) {
+              next(err);
+          })
+    }
+    catch (err) {
+        next(err)
+    }
+});
 /**
  * Restricted call
- * Update a testvector by id.
+ * Update a testcontent by id.
  * Expects the payload of the attribute instances to be in the form [{._id,value},{._id,value}]
  * @param {string} id
  */
-router.put('/:id', utils.checkPermissions("testvectors", "update"), function (req, res, next) {
+router.put('/:id', utils.checkPermissions("testcontents", "update"), function (req, res, next) {
     var id = req.params.id;
     var data;
     var now = new Date();
@@ -138,21 +122,19 @@ router.put('/:id', utils.checkPermissions("testvectors", "update"), function (re
     if (!data || !data.attributeInstances) {
         data.attributeInstances = [];
     }
-
     data.updatedAt = now;
     utils.updateManyAttributeInstances(data.attributeInstances)
       .then(function (result) {
           // update and return the element
-          return Testvector.findOneAndUpdate({_id: id}, {
+          return Testcontent.findOneAndUpdate({_id: id}, {
               "$set": {
                   "name": data.name,
-                  "url": data.url,
                   "active": data.active,
                   "includeInDashjsJson": data.includeInDashjsJson,
-                  "testcontents": data.testcontents,
+                  "feature": data.feature,
                   "updatedAt": data.updatedAt
               }
-          }, {new: true}).deepPopulate('attributeInstances testcontents attributeInstances.attribute')
+          }, {new: true}).deepPopulate('attributeInstances attributeInstances.attribute')
       })
       .then(function (result) {
           utils.writeFeatureTestVectorJSON();
@@ -164,12 +146,10 @@ router.put('/:id', utils.checkPermissions("testvectors", "update"), function (re
 });
 
 /**
- * Restricted call
- * Delete a testvector by id.
- * Expects the payload of the attribute instances to be in the form [{._id,value},{._id,value}]
- * @param {string} id
+ Delete Test Case by Test Case ID clear records from Test Vectors and Features
+ Only authorized user can access this method.
  */
-router.delete('/:id', utils.checkPermissions("testvectors", "delete"), function (req, res, next) {
+router.delete('/:id', utils.checkPermissions("testcontents", "delete"), function (req, res, next) {
     var id = req.params.id;
     var attributeInstancesIds;
 
@@ -177,13 +157,13 @@ router.delete('/:id', utils.checkPermissions("testvectors", "delete"), function 
         return next(new BadRequestError('empty_data', 'Feature Group ID cannot be empty.'));
     }
     // Delete all attributes of the element, afterwards delete the element
-    Testvector.findById(id)
+    Testcontent.findById(id)
       .then(function (doc) {
           attributeInstancesIds = doc.attributeInstances || [];
           return utils.deleteManyAttributeInstances(attributeInstancesIds)
       })
       .then(function () {
-          return Testvector.findByIdAndRemove({_id: id})
+          return Testcontent.findByIdAndRemove({_id: id})
       })
       .then(function (result) {
           utils.writeFeatureTestVectorJSON();

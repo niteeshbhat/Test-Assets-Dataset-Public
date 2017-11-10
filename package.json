@@ -1,9 +1,12 @@
 {
-  "name": "Test-Assets-Dataset",
-  "version": "1.0.0",
+  "name": "webapi",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test": "NODE_ENV=test node ./bin/www",
+    "startProduction": "NODE_ENV=production node ./bin/www",
+    "startProductionPm2": "NODE_ENV=production pm2 start npm --name test-assets-dataset-merged -- start"
   },
   "dependencies": {
     "acl": "^0.4.9",
@@ -21,7 +24,7 @@
     "jade": "~1.11.0",
     "jsonwebtoken": "^5.0.0",
     "lodash": "~2.4.1",
-    "mongoose": "^4.5.2",
+    "mongoose": "^4.10.8",
     "mongoose-deep-populate": "^3.0.0",
     "mongoose-schema": "0.0.7",
     "morgan": "~1.6.1",

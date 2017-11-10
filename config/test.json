@@ -1,0 +1,6 @@
+{
+  "dbConfig": {
+    "dbName": "vrif-test-db",
+    "aclPrefix": "acl_"
+  }
+}

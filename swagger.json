@@ -175,9 +175,9 @@
         }
       }
     },
-    "/testcases": {
+    "/testcontents": {
       "get": {
-        "description": "Gets `Testcase` objects.\n",
+        "description": "Gets `Testcontent` objects.\n",
         "produces": [
           "application/json"
         ],
@@ -189,7 +189,7 @@
                 "data": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/Testcase"
+                    "$ref": "#/definitions/Testcontent"
                   }
                 }
               }
@@ -204,7 +204,7 @@
         }
       },
       "post": {
-        "description": "Adds `Testcase` object to Testcases collection.\nTBD Response data. Complete `Testcase` object or id only. \n",
+        "description": "Adds `Testcontent` object to Testcontents collection.\nTBD Response data. Complete `Testcontent` object or id only. \n",
         "security": [
           {
             "Bearer": []
@@ -219,7 +219,7 @@
             "name": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Testcase"
+              "$ref": "#/definitions/Testcontent"
             }
           }
         ],
@@ -227,7 +227,7 @@
           "200": {
             "description": "Successful response",
             "schema": {
-              "$ref": "#/definitions/Testcase"
+              "$ref": "#/definitions/Testcontent"
             }
           },
           "500": {
@@ -239,18 +239,18 @@
         }
       }
     },
-    "/testcases/{testcase-id}": {
+    "/testcontent/{testcontent-id}": {
       "parameters": [
         {
-          "name": "testcase-id",
+          "name": "testcontent-id",
           "in": "path",
-          "description": "id of Testcase object",
+          "description": "id of Testcontent object",
           "required": true,
           "type": "string"
         }
       ],
       "get": {
-        "description": "Gets `Testcase` object from Testcase collection by `Testcase.id`.\n",
+        "description": "Gets `Testcontent` object from Testcontent collection by `Testcontent.id`.\n",
         "produces": [
           "application/json"
         ],
@@ -258,7 +258,7 @@
           "200": {
             "description": "Successful response",
             "schema": {
-              "$ref": "#/definitions/Testcase"
+              "$ref": "#/definitions/Testcontent"
             }
           },
           "default": {
@@ -270,7 +270,7 @@
         }
       },
       "put": {
-        "description": "Updates `Testcase` object from Testcases collection by `Testcase.id`.\n",
+        "description": "Updates `Testcontent` object from Testcontents collection by `Testcontent.id`.\n",
         "security": [
           {
             "Bearer": []
@@ -285,7 +285,7 @@
             "name": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Testcase"
+              "$ref": "#/definitions/Testcontent"
             }
           }
         ],
@@ -293,7 +293,7 @@
           "200": {
             "description": "Successful response",
             "schema": {
-              "$ref": "#/definitions/Testcase"
+              "$ref": "#/definitions/Testcontent"
             }
           },
           "default": {
@@ -305,7 +305,7 @@
         }
       },
       "delete": {
-        "description": "Delete `Testcase` object from Testcases collection by `Testcase.id`. Testcase can be delete only by user who created or user with administrator role.\n",
+        "description": "Delete `Testcontent` object from Testcontents collection by `Testcontent.id`. Testcontent can be delete only by user who created or user with administrator role.\n",
         "security": [
           {
             "Bearer": []
@@ -316,7 +316,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Testcase deleted"
+            "description": "Testcontent deleted"
           },
           "default": {
             "description": "TBD (prop. unexpected error)",
@@ -481,7 +481,7 @@
     },
     "/users": {
       "get": {
-        "description": "Gets a list of existing DASH-IF Testvector system users who can create / delete `Testvector` and `Testcase`. Only user with administrator role can obtain this list of users.\n",
+        "description": "Gets a list of existing DASH-IF Testvector system users who can create / delete `Testvector` and `Testcontent`. Only user with administrator role can obtain this list of users.\n",
         "security": [
           {
             "Bearer": []
@@ -648,13 +648,13 @@
             "$ref": "#/definitions/AttributeInstance"
           }
         },
-        "testcases": {
+        "testcontents": {
           "type": "array",
           "items": {
             "_mongoose": {
               "type": "objectId"
             },
-            "$ref": "#/definitions/Testcase"
+            "$ref": "#/definitions/Testcontent"
           }
         },
         "createdby": {
@@ -671,7 +671,7 @@
         }
       }
     },
-    "Testcase": {
+    "Testcontent": {
       "type": "object",
       "properties": {
         "id": {
@@ -695,12 +695,7 @@
             "$ref": "#/definitions/AttributeInstance"
           }
         },
-        "feature": {
-          "_mongoose": {
-            "type": "objectId"
-          },
-          "$ref": "#/definitions/Feature"
-        },
+      
         "createdby": {
           "_mongoose": {
             "type": "objectId"

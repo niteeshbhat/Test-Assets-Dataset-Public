@@ -24,17 +24,15 @@ utils.sampleData = {}; // we store some sample data for our tests here
 
 utils.conntectToDatabase = function () {
     var q = Q.defer();
+    var mongooseUri = config.dbConfig.host + ':' + config.dbConfig.port + '/' + config.dbConfig.dbName;
 
-    mongoose.set('debug', true);
-    mongoose.connect('mongodb://' + config.get('dbConfig.url') + ':' + config.get('dbConfig.port') + "/" + config.get('dbConfig.dbName'), {
-        user: config.get('dbConfig.user'),
-        pass: config.get('dbConfig.pass')
-    });
+    mongoose.set('debug', false);
+    mongoose.connect(mongooseUri);
     mongoose.connection.on('error', function () {
         q.reject();
     });
     mongoose.connection.once('open', function callback() {
-        utils.acl = new acl(new acl.mongodbBackend(mongoose.connection.db, config.get('dbConfig.aclPrefix')));
+        utils.acl = new acl(new acl.mongodbBackend(mongoose.connection.db, config.dbConfig.aclPrefix));
         q.resolve();
     });
     return q.promise;
@@ -46,7 +44,7 @@ utils.addUserRoles = function () {
             roles: ['superuser'],
             allows: [
                 {
-                    resources: ['featuregroups', 'testcases', 'testvectors', 'features', 'users', 'attributes'],
+                    resources: ['testcontents', 'testvectors', 'users', 'attributes'],
                     permissions: ['create', 'read', 'update', 'delete']
                 }
             ]
@@ -55,7 +53,7 @@ utils.addUserRoles = function () {
             roles: ['admin'],
             allows: [
                 {
-                    resources: ['featuregroups', 'testcases', 'testvectors', 'features', 'users', 'attributes'],
+                    resources: ['testcontents', 'testvectors',  'users', 'attributes'],
                     permissions: ['create', 'read', 'update', 'delete']
                 }
             ]
@@ -64,7 +62,7 @@ utils.addUserRoles = function () {
             roles: ['member'],
             allows: [
                 {
-                    resources: ['featuregroups', 'testcases', 'testvectors', 'features'],
+                    resources: ['testcontents', 'testvectors'],
                     permissions: ['create', 'read', 'update', 'delete']
                 }
             ]
@@ -101,19 +99,17 @@ utils.clearDatabase = function () {
     var q = Q.defer();
 
     try {
-        mongoose.connection.db.dropCollection('features', function () {
             mongoose.connection.db.dropCollection('testvectors', function () {
-                mongoose.connection.db.dropCollection('testcases', function () {
-                    mongoose.connection.db.dropCollection('featuregroups', function () {
+                mongoose.connection.db.dropCollection('testcontents', function () {
                         mongoose.connection.db.dropCollection('attributes', function () {
                             mongoose.connection.db.dropCollection('attributeinstances', function () {
                                 q.resolve();
                             })
                         })
-                    })
+                    
                 });
             });
-        });
+        
     }
     catch (e) {
         q.reject(e);
