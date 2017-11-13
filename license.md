@@ -1,6 +1,6 @@
 ## Licensing
 
-Copyright 2016 DASH-IF
+Copyright 2017 VR-IF
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
